@@ -11,7 +11,7 @@ public class ConnectionModeFactory {
     @Bean
     public static InterfaceDataPublisher getConnectionHandler(AppConfig appConfig) {
         return switch (appConfig.getConnectionType()) {
-            case ANTENNA -> new AntennaConnectionDataPublisher();
+            case ANTENNA -> new AntennaConnectionDataPublisher(appConfig.getBufferedMessages());
             case INPUT_FILE -> new InputFileDataPublisher();
         };
     }

@@ -1,10 +1,13 @@
 package com.example.global;
 
-public class Message {
+import org.springframework.context.ApplicationEvent;
+
+public class Message extends ApplicationEvent {
     private long timeStamp;
     private String payload;
 
-    public Message(long timeStamp, String payload) {
+    public Message(Object source, long timeStamp, String payload) {
+        super(source);
         this.timeStamp = timeStamp;
         this.payload = payload;
     }

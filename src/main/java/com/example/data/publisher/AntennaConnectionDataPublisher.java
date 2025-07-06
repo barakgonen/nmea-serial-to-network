@@ -9,10 +9,13 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.TransferQueue;
 
 public class AntennaConnectionDataPublisher implements InterfaceDataPublisher {
-    public AntennaConnectionDataPublisher() {
+    private TransferQueue<Message> messagesToTransfer;
+    public AntennaConnectionDataPublisher(TransferQueue<Message> messagesToTransferQueue) {
         System.out.println("Antenna connection has created");
+        messagesToTransfer = messagesToTransferQueue;
     }
 
     @Override
@@ -58,34 +61,35 @@ public class AntennaConnectionDataPublisher implements InterfaceDataPublisher {
 
         try (InputStream in = port.getInputStream()) {
             byte[] buffer = new byte[1024];
-            while (messages.size() < 150) {
+            while (true) {
                 while (in.available() > 0) {
                     int numRead = in.read(buffer);
                     String received = new String(buffer, 0, numRead);
-                    messages.add(new Message(Instant.now().toEpochMilli(), received));
-                    System.out.print(received);
+//                    Message message = new Message(Instant.now().toEpochMilli(), received);
+//                    messagesToTransfer.add(message);
+//                    System.out.print(received);
                 }
 
                 Thread.sleep(100); // avoid CPU spinning
             }
 
-            System.out.println("Finished reading messages, writing to file!");
-            File outputFile = new File(Instant.now() + "_nmea_log.csv");
-            try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), StandardCharsets.UTF_8))) {
-                writer.write("timestamp,message");
-                writer.newLine();
-                messages.forEach(message -> {
-                    try {
-                        writer.write(message.toString());
-//                        writer.newLine();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-
-                });
-            } catch (Exception e) {
-                System.out.println("caught an exception during writing to output file");
-            }
+//            System.out.println("Finished reading messages, writing to file!");
+//            File outputFile = new File(Instant.now() + "_nmea_log.csv");
+//            try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), StandardCharsets.UTF_8))) {
+//                writer.write("timestamp,message");
+//                writer.newLine();
+//                messages.forEach(message -> {
+//                    try {
+//                        writer.write(message.toString());
+////                        writer.newLine();
+//                    } catch (IOException e) {
+//                        throw new RuntimeException(e);
+//                    }
+//
+//                });
+//            } catch (Exception e) {
+//                System.out.println("caught an exception during writing to output file");
+//            }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

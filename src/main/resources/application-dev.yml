@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: usb-data-publisher
+app:
+  connectionType: INPUT_FILE

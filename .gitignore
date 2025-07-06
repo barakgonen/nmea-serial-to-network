@@ -1,0 +1,36 @@
+# Java build output
+/bin/
+/build/
+/out/
+/target/
+
+# Gradle
+.gradle/
+gradle/
+/build/
+/!gradle/wrapper/gradle-wrapper.jar
+
+# Gradle caches (optional)
+**/.gradle
+
+# IDEs
+# IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Eclipse
+*.classpath
+*.project
+*.settings/
+
+# NetBeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# VS Cod

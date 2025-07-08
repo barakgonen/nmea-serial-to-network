@@ -1,7 +1,9 @@
 package com.example.global;
 
+import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
+@Getter
 public class Message extends ApplicationEvent {
     private long timeStamp;
     private String payload;

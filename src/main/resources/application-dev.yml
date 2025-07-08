@@ -3,3 +3,5 @@ spring:
     name: usb-data-publisher
 app:
   connectionType: INPUT_FILE
+input-file:
+  path: "/Users/bg/IdeaProjects/nmea-serial-to-network/messages_since_1751912767660.csv"

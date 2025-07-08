@@ -2,6 +2,9 @@ package com.example.data.publisher;
 
 import com.example.global.Message;
 import com.fazecast.jSerialComm.SerialPort;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -12,11 +15,8 @@ import java.util.Scanner;
 import java.util.concurrent.TransferQueue;
 
 public class AntennaConnectionDataPublisher implements InterfaceDataPublisher {
-    private TransferQueue<Message> messagesToTransfer;
-    public AntennaConnectionDataPublisher(TransferQueue<Message> messagesToTransferQueue) {
-        System.out.println("Antenna connection has created");
-        messagesToTransfer = messagesToTransferQueue;
-    }
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     public void execute() {
@@ -65,36 +65,15 @@ public class AntennaConnectionDataPublisher implements InterfaceDataPublisher {
                 while (in.available() > 0) {
                     int numRead = in.read(buffer);
                     String received = new String(buffer, 0, numRead);
-//                    Message message = new Message(Instant.now().toEpochMilli(), received);
-//                    messagesToTransfer.add(message);
-//                    System.out.print(received);
+                    applicationEventPublisher.publishEvent(new Message(this, Instant.now().toEpochMilli(), received));
                 }
 
                 Thread.sleep(100); // avoid CPU spinning
             }
-
-//            System.out.println("Finished reading messages, writing to file!");
-//            File outputFile = new File(Instant.now() + "_nmea_log.csv");
-//            try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), StandardCharsets.UTF_8))) {
-//                writer.write("timestamp,message");
-//                writer.newLine();
-//                messages.forEach(message -> {
-//                    try {
-//                        writer.write(message.toString());
-////                        writer.newLine();
-//                    } catch (IOException e) {
-//                        throw new RuntimeException(e);
-//                    }
-//
-//                });
-//            } catch (Exception e) {
-//                System.out.println("caught an exception during writing to output file");
-//            }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
             port.closePort();
         }
-        System.out.println("DONE!");
     }
 }

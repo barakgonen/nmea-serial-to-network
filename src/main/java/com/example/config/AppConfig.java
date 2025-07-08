@@ -1,5 +1,6 @@
-package com.example;
+package com.example.config;
 
+import com.example.ConnectionType;
 import com.example.global.Message;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,5 +16,4 @@ import java.util.concurrent.TransferQueue;
 @ConfigurationProperties(prefix = "app")
 public class AppConfig {
     private ConnectionType connectionType;
-    private TransferQueue<Message> bufferedMessages = new LinkedTransferQueue<>();
 }

@@ -1,20 +1,32 @@
 package com.example.data.distribution;
 
-import com.example.AppConfig;
-import com.example.global.Message;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationListener;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-import java.util.concurrent.TransferQueue;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
 
-@Service
-@Slf4j
-public class TcpServer implements ApplicationListener<Message> {
+@Component
+public class TcpServer implements Runnable {
+    private final TcpClientHandler clientHandler;
+
+    public TcpServer(TcpClientHandler clientHandler) {
+        this.clientHandler = clientHandler;
+        new Thread(this).start(); // start TCP server in background
+    }
+
     @Override
-    public void onApplicationEvent(Message event) {
-        log.info("TcpServer got an event: {}", event);
+    public void run() {
+        try (ServerSocket serverSocket = new ServerSocket(12345)) {
+            System.out.println("TCP Server started on port 12345");
+
+            while (true) {
+                Socket clientSocket = serverSocket.accept();
+                System.out.println("Client connected: " + clientSocket.getInetAddress());
+                clientHandler.setClientSocket(clientSocket);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

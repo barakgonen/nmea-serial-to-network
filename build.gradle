@@ -10,6 +10,9 @@ repositories {
     maven {
         url 'https://packages.confluent.io/maven/'
     }
+    maven {
+        url 'https://repo1.maven.org/maven2/'
+    }
 }
 
 dependencies {
@@ -22,6 +25,9 @@ dependencies {
 
     // Serial port
     implementation 'com.fazecast:jSerialComm:2.9.3'
+
+    // csv
+    implementation("com.opencsv:opencsv:5.11.2")
 
     // Testing
     testImplementation platform('org.junit:junit-bom:5.10.0')

@@ -1,13 +1,11 @@
-package com.example.data.publisher;
+package com.example.data.fetcher;
 
 import com.example.config.InputFileConfig;
 import com.example.global.DelayedMessage;
 import com.example.global.Message;
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -16,14 +14,14 @@ import java.time.Instant;
 import java.util.concurrent.DelayQueue;
 
 @Slf4j
-public class InputFileDataPublisher implements InterfaceDataPublisher {
+public class InputFileEventsFetcher implements InterfaceEventsFetcher {
 
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
     private String inputFilePath;
     private final DelayQueue<DelayedMessage> queue;
 
-    public InputFileDataPublisher(InputFileConfig inputFileConfig) {
+    public InputFileEventsFetcher(InputFileConfig inputFileConfig) {
         this.inputFilePath = inputFileConfig.getPath();
         this.queue = new DelayQueue<>();
     }
@@ -35,7 +33,7 @@ public class InputFileDataPublisher implements InterfaceDataPublisher {
             long baseTimestamp = -1;
 
             while ((line = br.readLine()) != null) {
-                if (line.startsWith("timestamp")) continue;
+                if (line.startsWith("timeStamp")) continue;
 
                 String[] parts = line.split(",", 2);
                 if (parts.length != 2) continue;

@@ -1,19 +1,18 @@
 package com.example.global;
 
+import lombok.Getter;
+
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
 public class DelayedMessage implements Delayed {
     private final long scheduledTimeMillis;
+    @Getter
     private final String message;
 
     public DelayedMessage(long baseTimestamp, long actualTimestamp, String message) {
         this.scheduledTimeMillis = System.currentTimeMillis() + (actualTimestamp - baseTimestamp);
         this.message = message;
-    }
-
-    public String getMessage() {
-        return message;
     }
 
     @Override

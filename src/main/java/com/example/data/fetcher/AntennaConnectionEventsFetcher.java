@@ -1,4 +1,4 @@
-package com.example.data.publisher;
+package com.example.data.fetcher;
 
 import com.example.global.Message;
 import com.fazecast.jSerialComm.SerialPort;
@@ -15,7 +15,7 @@ import java.util.Optional;
 import java.util.Scanner;
 
 @Slf4j
-public class AntennaConnectionDataPublisher implements InterfaceDataPublisher {
+public class AntennaConnectionEventsFetcher implements InterfaceEventsFetcher {
 
     // Socket read configuration
     @Value("${socket.buffer.size}")
@@ -75,12 +75,14 @@ public class AntennaConnectionDataPublisher implements InterfaceDataPublisher {
             int numRead = in.read(buffer);
             if (numRead > 0) {
                 String received = new String(buffer, 0, numRead);
-                List<String> splitMessages = Arrays.stream(received.split("\n")).toList();
+                List<String> splitMessages = Arrays.stream(received.split("\\R")).toList();
                 log.info("1 message split to: {} messages", splitMessages.size());
-                Arrays
-                        .stream(received.split("\n"))
-                        .forEach(s ->
-                                applicationEventPublisher.publishEvent(new Message(this, Instant.now().toEpochMilli(), s)));
+                splitMessages.forEach(s -> {
+                    String cleanedLine = s.replaceAll("[\\r\\n]+", "").trim(); // remove all line breaks
+                    if (!cleanedLine.isEmpty()) {
+                        applicationEventPublisher.publishEvent(new Message(this, Instant.now().toEpochMilli(), cleanedLine));
+                    }
+                });
             }
         }
     }

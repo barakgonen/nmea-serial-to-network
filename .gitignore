@@ -34,3 +34,5 @@ nbdist/
 .nb-gradle/
 
 # VS Cod
+
+./output_events/

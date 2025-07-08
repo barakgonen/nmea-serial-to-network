@@ -1,16 +1,21 @@
 package com.example.data.fetcher;
 
 import com.example.config.InputFileConfig;
+import com.example.global.CsvMessage;
 import com.example.global.DelayedMessage;
 import com.example.global.Message;
+import com.opencsv.bean.CsvToBean;
+import com.opencsv.bean.CsvToBeanBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.time.Instant;
+import java.util.List;
 import java.util.concurrent.DelayQueue;
 
 @Slf4j

@@ -4,7 +4,7 @@ spring:
 app:
   connectionType: INPUT_FILE
 input-file:
-  path: "/Users/bg/IdeaProjects/nmea-serial-to-network/messages_since_1751912767660.csv"
+  path: "/Users/bg/IdeaProjects/nmea-serial-to-network/output_events/events_dump_1751955395239.csv"
 
 socket.buffer.size: 1024
 socket.poll.delay.ms: 100

@@ -5,3 +5,10 @@ app:
   connectionType: INPUT_FILE
 input-file:
   path: "/Users/bg/IdeaProjects/nmea-serial-to-network/messages_since_1751912767660.csv"
+
+socket.buffer.size: 1024
+socket.poll.delay.ms: 100
+serial.port.baud.rate: 38400
+serial.port.data.bits.size: 8
+serial.port.num.of.stop.bits: 1
+serial.port.set.parity: 0

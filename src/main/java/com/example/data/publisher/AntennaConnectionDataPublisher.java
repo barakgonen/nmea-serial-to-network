@@ -2,33 +2,99 @@ package com.example.data.publisher;
 
 import com.example.global.Message;
 import com.fazecast.jSerialComm.SerialPort;
-import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
-import java.util.concurrent.TransferQueue;
 
+@Slf4j
 public class AntennaConnectionDataPublisher implements InterfaceDataPublisher {
+
+    // Socket read configuration
+    @Value("${socket.buffer.size}")
+    private int BUFFER_SIZE;
+    @Value("${socket.poll.delay.ms}")
+    private int POLL_DELAY_MS;
+
+    // Serial port configuration
+    @Value("${serial.port.baud.rate}")
+    private int BAUD_RATE;
+    @Value("${serial.port.data.bits.size}")
+    private int DATA_BITS_SIZE;
+    @Value("${serial.port.num.of.stop.bits}")
+    private int NUM_OF_STOP_BITS;
+    @Value("${serial.port.set.parity}")
+    private int SET_PARITY;
+
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     public void execute() {
-        List<Message> messages = new ArrayList<>();
-        SerialPort[] ports = SerialPort.getCommPorts();
 
-        if (ports.length == 0) {
-            System.out.println("No serial ports found.");
+        Optional<SerialPort> serialPortOptional = getSerialPort();
+
+        if (serialPortOptional.isEmpty()) {
+            log.error("Failed setting up a serial port, rejecting");
             return;
         }
 
+        var port = serialPortOptional.get();
+        if (!port.openPort()) {
+            log.error("Failed to open port.");
+            return;
+        }
+
+        log.info("Port opened. Reading NMEA data...");
+
+        try (InputStream in = port.getInputStream()) {
+            byte[] buffer = new byte[BUFFER_SIZE];
+
+            while (!Thread.currentThread().isInterrupted()) {
+                readAvailableBytes(in, buffer);
+                Thread.sleep(POLL_DELAY_MS);
+            }
+
+        } catch (IOException | InterruptedException e) {
+            Thread.currentThread().interrupt(); // reset interrupt flag
+            log.error("Serial port reading interrupted or failed", e);
+        } finally {
+            port.closePort();
+        }
+    }
+
+    private void readAvailableBytes(InputStream in, byte[] buffer) throws IOException {
+        while (in.available() > 0) {
+            int numRead = in.read(buffer);
+            if (numRead > 0) {
+                String received = new String(buffer, 0, numRead);
+                List<String> splitMessages = Arrays.stream(received.split("\n")).toList();
+                log.info("1 message split to: {} messages", splitMessages.size());
+                Arrays
+                        .stream(received.split("\n"))
+                        .forEach(s ->
+                                applicationEventPublisher.publishEvent(new Message(this, Instant.now().toEpochMilli(), s)));
+            }
+        }
+    }
+
+    private Optional<SerialPort> getSerialPort() {
+        SerialPort[] ports = SerialPort.getCommPorts();
+
+        if (ports.length == 0) {
+            log.error("No serial ports found.");
+            return Optional.empty();
+        }
+
         // List all available ports
+        // sout because it's an interaction with the user
         System.out.println("Available serial ports:");
         for (int i = 0; i < ports.length; i++) {
             System.out.println("[" + i + "] " + ports[i].getSystemPortName() + " - " + ports[i].getDescriptivePortName());
@@ -41,39 +107,16 @@ public class AntennaConnectionDataPublisher implements InterfaceDataPublisher {
 
         if (index < 0 || index >= ports.length) {
             System.out.println("Invalid selection.");
-            return;
+            return Optional.empty();
         }
 
         SerialPort port = ports[index];
-
         // Configure the port for NMEA 0183-HS
-        port.setBaudRate(38400);
-        port.setNumDataBits(8);
-        port.setNumStopBits(SerialPort.ONE_STOP_BIT);
-        port.setParity(SerialPort.NO_PARITY);
+        port.setBaudRate(BAUD_RATE);
+        port.setNumDataBits(DATA_BITS_SIZE);
+        port.setNumStopBits(NUM_OF_STOP_BITS);
+        port.setParity(SET_PARITY);
 
-        if (!port.openPort()) {
-            System.out.println("Failed to open port.");
-            return;
-        }
-
-        System.out.println("Port opened. Reading NMEA data...\n");
-
-        try (InputStream in = port.getInputStream()) {
-            byte[] buffer = new byte[1024];
-            while (true) {
-                while (in.available() > 0) {
-                    int numRead = in.read(buffer);
-                    String received = new String(buffer, 0, numRead);
-                    applicationEventPublisher.publishEvent(new Message(this, Instant.now().toEpochMilli(), received));
-                }
-
-                Thread.sleep(100); // avoid CPU spinning
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            port.closePort();
-        }
+        return Optional.of(port);
     }
 }
